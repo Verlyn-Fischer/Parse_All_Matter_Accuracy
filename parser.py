@@ -36,6 +36,15 @@ def isPriv(tag):
     else:
         return False
 
+def isSpam(tag):
+    if len(re.findall('Junk',tag))>0 or len(re.findall('junk',tag))>0 \
+            or len(re.findall('spam',tag))>0 or len(re.findall('Spam',tag))>0 \
+            or len(re.findall('inappropriate',tag))>0 or len(re.findall('Inappropriate',tag))>0\
+            or len(re.findall('trash',tag))>0 or len(re.findall('Trash',tag))>0:
+        return True
+    else:
+        return False
+
 def saveCSV(filename,data):
     with open(filename,'w') as csvFile:
         csvWriter = csv.writer(csvFile,delimiter=',')
@@ -52,7 +61,7 @@ def main():
             if todayDate - last_tagged > datetime.timedelta(days=30):
                 if 'latest_perceived_accuracies' in data['matters'][matter]:
                     for tag in data['matters'][matter]['latest_perceived_accuracies']:
-                        if isPriv(tag):
+                        if isSpam(tag):
                             pos_signals = data['matters'][matter]['latest_perceived_accuracies'][tag]['pos_signals']
                             neg_signals = data['matters'][matter]['latest_perceived_accuracies'][tag]['neg_signals']
                             if pos_signals > 1000 and neg_signals > 1000:
@@ -61,6 +70,6 @@ def main():
                                 ml_id = data['matters'][matter]['matter_id']
                                 tag_name = tag
                                 candidates.append((matter_id, matter_name, ml_id, tag_name,pos_signals,neg_signals))
-    saveCSV('matters_with_priv.csv',candidates)
+    saveCSV('matters_with_spam.csv',candidates)
 
 main()
