@@ -53,7 +53,7 @@ def saveCSV(filename,data):
 def main():
     todayDate = datetime.date.today()
     candidates = []
-    candidates.append(('matter_id','matter_name', 'ml_id','tag','pos_sig','neg_sig'))
+    candidates.append(('matter_id','matter_name', 'ml_id','tag','pos_sig','neg_sig','tn','fp','fn','tp','pos_recall','neg_recall'))
     data = loadAccuracy('allmatter_accuracy_2020-02-18.json')
     for matter in data['matters']:
         if 'last_tagged_at' in data['matters'][matter]:
@@ -61,15 +61,27 @@ def main():
             if todayDate - last_tagged > datetime.timedelta(days=30):
                 if 'latest_perceived_accuracies' in data['matters'][matter]:
                     for tag in data['matters'][matter]['latest_perceived_accuracies']:
-                        if isSpam(tag):
+                        if isPriv(tag):
                             pos_signals = data['matters'][matter]['latest_perceived_accuracies'][tag]['pos_signals']
                             neg_signals = data['matters'][matter]['latest_perceived_accuracies'][tag]['neg_signals']
+                            tn = data['matters'][matter]['latest_perceived_accuracies'][tag]['tn']
+                            fp = data['matters'][matter]['latest_perceived_accuracies'][tag]['fp']
+                            fn = data['matters'][matter]['latest_perceived_accuracies'][tag]['fn']
+                            tp = data['matters'][matter]['latest_perceived_accuracies'][tag]['tp']
+                            if tp + fn > 0:
+                                pos_recall = tp / (tp + fn)
+                            else:
+                                pos_recall = 0
+                            if fp + tn > 0:
+                                neg_recall = tn / (fp + tn)
+                            else:
+                                neg_recall = 0
                             if pos_signals > 1000 and neg_signals > 1000:
                                 matter_id = matter
                                 matter_name = data['matters'][matter]['matter_name']
                                 ml_id = data['matters'][matter]['matter_id']
                                 tag_name = tag
-                                candidates.append((matter_id, matter_name, ml_id, tag_name,pos_signals,neg_signals))
-    saveCSV('matters_with_spam.csv',candidates)
+                                candidates.append((matter_id, matter_name, ml_id, tag_name,pos_signals,neg_signals,tn,fp,fn,tp,pos_recall,neg_recall))
+    saveCSV('matters_with_priv_addl.csv',candidates)
 
 main()
